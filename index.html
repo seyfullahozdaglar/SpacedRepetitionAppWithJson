@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Vocabulary Flashcards</title>
+
+    <!-- External stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Side navigation (lists + create list) -->
+    <div id="sideNav" class="side-nav" aria-hidden="true">
+        <h2>Your Lists</h2>
+        <div class="lists-inner">
+            <div id="listsContainer" class="control-group">
+                <!-- Lists will be rendered here (moved into side nav) -->
+            </div>
+        </div>
+        <div class="control-group" style="margin-top:12px;">
+            <input type="text" id="newListName" placeholder="New list name">
+            <button id="createListBtn">Create New List</button>
+        </div>
+    </div>
+
+    <!-- overlay that covers the screen when side nav is open -->
+    <div id="overlay" class="screen-overlay" tabindex="-1"></div>
+
+    <div class="container">
+        <header>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button id="burgerBtn" aria-label="Open lists menu">☰</button>
+                <div>
+                    <h1>Vocabulary Flashcards</h1>
+                    <p>Learn and practice vocabulary with spaced repetition</p>
+                </div>
+            </div>
+            <div class="control-group" style="gap:8px;">
+                <label for="languageSelect">Language:</label>
+                <select id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="pl">Polish</option>
+                    <option value="tr">Turkish</option>
+                </select>
+
+                <!-- Night mode toggle button (added) -->
+                <button id="nightModeToggle" title="Toggle night mode">🌙</button>
+            </div>
+        </header>
+
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view active">
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-label">Total Cards</div>
+                    <div id="totalCards" class="stat-number">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Ready to Practice</div>
+                    <div id="readyToPractice" class="stat-number">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Never Practiced</div>
+                    <div id="neverPracticed" class="stat-number">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Known Words</div>
+                    <div id="knownWords" class="stat-number">0</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label for="batchSize">Batch Size:</label>
+                    <select id="batchSize">
+                        <option value="5">5 cards</option>
+                        <option value="10" selected>10 cards</option>
+                        <option value="15">15 cards</option>
+                        <option value="20">20 cards</option>
+                    </select>
+
+                    <label for="direction">Direction:</label>
+                    <select id="direction">
+                        <option value="wordToMeaning">Word → Meaning</option>
+                        <option value="meaningToWord">Meaning → Word</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <button id="learnNewBtn">Learn New Words</button>
+                    <button id="practiceLearnedBtn">Practice Learned Words</button>
+                    <button id="viewStatsBtn">View Statistics</button>
+                </div>
+
+                <div class="control-group">
+                    <button id="importBtn">Import Cards</button>
+                    <button id="exportMetadataBtn">Export Metadata</button>
+                    <button id="importMetadataBtn">Import Metadata</button>
+                    <button id="wipeAllBtn" class="danger">Wipe All Data</button>
+                </div>
+
+                <!-- File-binding UI -->
+                <div class="control-group file-controls">
+                    <button id="bindFileBtn">Bind to disk (auto-save)</button>
+                    <button id="openFileBtn">Open from disk</button>
+                    <div id="fileStatus" class="file-status">No file bound</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Practice View -->
+        <div id="practiceView" class="view">
+            <div class="progress" id="progressText">Question 1 of 10</div>
+            <div class="card">
+                <div class="question" id="questionText"></div>
+                <div class="options" id="optionsContainer"></div>
+                <div class="card-actions" id="cardActions" style="display: none;">
+                    <button id="markKnownBtn" class="success">Mark as Known</button>
+                    <button id="deleteCardBtn" class="danger">Delete Card</button>
+                </div>
+            </div>
+            <div class="feedback" id="feedback" style="display: none;"></div>
+            <button id="backToDashboardBtn" style="margin-top: 20px;">Back to Dashboard</button>
+        </div>
+
+        <!-- Summary View -->
+        <div id="summaryView" class="view">
+            <div class="summary">
+                <h2 id="summaryTitle">Session Summary</h2>
+                <p id="summaryText"></p>
+                <button id="summaryBtn">Back to Dashboard</button>
+            </div>
+        </div>
+
+        <!-- Statistics View -->
+        <div id="statsView" class="view">
+            <button id="backFromStatsBtn" style="margin-bottom: 20px;">Back to Dashboard</button>
+            <h2>Card Statistics</h2>
+            <div class="control-group">
+                <button id="availableNowFilter" class="filter-btn active">Available Now</button>
+                <button id="neverPracticedFilter" class="filter-btn">Never Practiced</button>
+                <button id="knownWordsFilter" class="filter-btn">Known Words</button>
+                <button id="allCardsFilter" class="filter-btn">All Cards</button>
+            </div>
+            <table id="statsTable">
+                <thead>
+                    <tr>
+                        <th data-sort="word" data-sort-direction="none">Word</th>
+                        <th data-sort="meaning" data-sort-direction="none">Meaning</th>
+                        <th data-sort="practiced" data-sort-direction="none">Practiced</th>
+                        <th data-sort="successRate" data-sort-direction="none">Success Rate</th>
+                        <th data-sort="nextDueAt" data-sort-direction="none">Next Due</th>
+                        <th data-sort="known" data-sort-direction="none">Known</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="statsTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Import View -->
+        <div id="importView" class="view">
+            <h2>Import Cards</h2>
+
+            <div class="single-add-form">
+                <h3>Add Single Card</h3>
+                <div class="form-group">
+                    <label for="wordInput">Word:</label>
+                    <input type="text" id="wordInput" placeholder="Enter word">
+                </div>
+                <div class="form-group">
+                    <label for="meaningInput">Meaning:</label>
+                    <input type="text" id="meaningInput" placeholder="Enter meaning">
+                </div>
+                <button id="addSingleCardBtn">Add Card</button>
+            </div>
+
+            <div class="import-section">
+                <h3>Bulk Import</h3>
+                <p>Import cards from a text file with format: <code>word,meaning</code> on each line</p>
+                <!-- broadened accept for better Android compatibility -->
+                <input type="file" id="fileInput" accept=".txt,.csv,text/plain,text/csv,application/vnd.ms-excel,application/octet-stream">
+                <button id="processImportBtn" style="margin-top: 15px;">Process Import</button>
+
+                <hr style="margin:20px 0;border:none;border-top:1px solid var(--border-color)">
+
+                <!-- NEW: Paste area for bulk import -->
+                <p>Or paste pairs directly (one per line, format: <code>word,meaning</code>)</p>
+                <textarea id="pasteInput" placeholder="e.g. apple, jabłko"></textarea>
+                <div style="margin-top:12px;">
+                    <button id="processPasteBtn">Import Pasted</button>
+                </div>
+            </div>
+            <div id="importResult" style="margin-top: 20px;"></div>
+            <button id="backFromImportBtn" style="margin-top: 20px;">Back to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Hidden file input for metadata import
+         NOTE: do NOT use display:none. use off-screen positioning so Android pickers handle it correctly -->
+    <input
+        type="file"
+        id="metadataFileInput"
+        accept=".csv,text/csv,application/csv,application/vnd.ms-excel,text/plain,application/octet-stream"
+        style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;"
+        aria-hidden="true"
+    >
+
+    <!-- External JS (deferred) -->
+    <script src="app.js" defer></script>
+</body>
+</html>
